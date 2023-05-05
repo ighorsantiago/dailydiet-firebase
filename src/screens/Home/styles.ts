@@ -1,3 +1,4 @@
+import { RectButton } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import styled from "styled-components/native";
 
@@ -11,7 +12,7 @@ export const Container = styled(SafeAreaView)`
 
 export const Content = styled.View`
     width: 100%;
-    margin-bottom: 72px;
+    /* margin-bottom: 10px; */
 `;
 
 export const Text = styled.Text`
@@ -31,3 +32,5 @@ export const SectionHeader = styled.Text`
     
     color: #1B1D1E;
 `;
+
+export const LogoutBtn = styled(RectButton)``;

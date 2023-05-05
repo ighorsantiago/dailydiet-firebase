@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
+import { useAuth } from "../../hooks/useAuth";
+
 import { Container, Content, CountBox, Data, Title } from "./styles";
 
 import { Loading } from "@components/Loading";
@@ -9,9 +11,11 @@ import { DataCard } from "@components/DataCard";
 
 import { MealStorageDTO } from "@storage/meals/MealStorageDTO";
 import { mealsGetAll } from "@storage/meals/mealsGetAll";
-import { mealsStatistics } from "@storage/meals/mealsStatistics";
+import { mealsStatistics } from "@storage/storageMeal";
 
 export function Statistics() {
+
+    const { user } = useAuth();
 
     const [isLoading, setIsLoading] = useState(false);
     const [meals, setMeals] = useState<MealStorageDTO[]>([]);
@@ -28,7 +32,7 @@ export function Statistics() {
 
             setIsLoading(true);
 
-            const statistics = await mealsStatistics();
+            const statistics = await mealsStatistics(user.email);
 
             setStats(statistics);
 
@@ -38,12 +42,6 @@ export function Statistics() {
             setIsLoading(false);
         }
     }
-
-    // useFocusEffect(
-    //     useCallback(() => {
-    //         fetchMeals();
-    //     }, [])
-    // );
 
     useEffect(() => {
 

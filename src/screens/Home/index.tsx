@@ -1,6 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { SectionList } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+
+import { useAuth } from "../../hooks/useAuth";
 
 import { Container, Content, Text } from "./styles";
 
@@ -10,13 +12,16 @@ import { Button } from "@components/Button";
 import { MealCard } from "@components/MealCard";
 import { Loading } from "@components/Loading";
 
-import { MealSectionDTO } from '@storage/meals/MealStorageDTO'
-import { datesGetAll } from "@storage/dates/datesGetAll";
-import { mealGetByDate } from "@storage/meals/mealsGetByDate";
-import { mealsStatistics } from "@storage/meals/mealsStatistics";
+import { MealSectionDTO } from "src/dtos/MealDTO";
+
+import { getMealsByDate, mealsGetAllFB, mealsStatistics } from "@storage/storageMeal";
+import { getAllDatesFB } from "@storage/storageDate";
+import { storageUserRemove } from "@storage/storageUser";
+
 
 export function Home() {
 
+    const { user } = useAuth();
     const navigation = useNavigation();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -34,8 +39,11 @@ export function Home() {
 
             setIsLoading(true);
 
-            const storedDates = await datesGetAll();
-            const statistics = await mealsStatistics();
+            // const storedDates = await getAllDatesFB(user.email);
+            const storedDates = user.dates;
+            // console.log("StoredDates:", storedDates);
+            const statistics = await mealsStatistics(user.email);
+            // console.log("Stats:", statistics);
 
             setStats(statistics);
             
@@ -43,7 +51,7 @@ export function Home() {
 
             for (let i = 0; i < storedDates.length; i++) {
 
-                const meals = await mealGetByDate(storedDates[i]);
+                const meals = await getMealsByDate(storedDates[i], user.email);
 
                 sectionMeals.push({
                     title: storedDates[i],
@@ -62,17 +70,24 @@ export function Home() {
 
     function handleNavigate(screen: string, id?: string) {
 
+        if(id) { console.log(id) }
+        
         switch (screen) {
             case 'statistics':
                 navigation.navigate('statistics');
                 break;
             case 'meal':
-                if (!!id) navigation.navigate('meal', { id });
+                if (id) { navigation.navigate('meal', { id }) }
                 break;
             case 'register':
                 navigation.navigate('register');
                 break;
         }
+        // console.log(user)
+    }
+
+    function handleSignOut() {
+        storageUserRemove();
     }
 
     useFocusEffect(
@@ -84,7 +99,7 @@ export function Home() {
     return (
         <Container>
             <HomeHeader />
-
+            
             <PercentageCard percentage={stats.percentage} onPress={() => handleNavigate('statistics')} />
 
             <Content>
@@ -95,7 +110,7 @@ export function Home() {
                     iconName='plus'
                     iconColor='white'
                     onPress={() => handleNavigate('register')}
-                    // onPress={() => AsyncStorage.clear()}
+                    onLongPress={handleSignOut}
                 />
             </Content>
 
@@ -103,6 +118,7 @@ export function Home() {
                 <SectionList style={{ marginTop: 32 }}
                     sections={meals}
                     keyExtractor={(item, index) => item.title + index}
+                    stickySectionHeadersEnabled={false}
                     renderItem={({ item }) => (
                         <MealCard
                             mealName={item.title}
@@ -112,6 +128,7 @@ export function Home() {
                         />
                     )}
                     renderSectionHeader={item => (
+                    // renderSectionHeader={({title}) => (
                         <Text>{item.section.title}</Text>
                     )}
                     ListEmptyComponent={() => (

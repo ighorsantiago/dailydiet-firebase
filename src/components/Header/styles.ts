@@ -1,4 +1,5 @@
 import { TouchableOpacity } from "react-native";
+import { RFValue } from "react-native-responsive-fontsize";
 import styled from "styled-components/native";
 
 export type ButtonTypeStyleProps = 'NORMAL' | 'PRIMARY' | 'SECONDARY';
@@ -9,7 +10,7 @@ type Props ={
 
 export const Container = styled.View<Props>`
     width: 100%;
-    height: 132px;
+    height: ${RFValue(132)}px;
 
     justify-content: center;
     align-items: center;

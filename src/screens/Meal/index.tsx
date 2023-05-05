@@ -1,6 +1,9 @@
 import { useState, useCallback } from "react";
 import { Alert } from "react-native";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
+
+import { useAuth } from "../../hooks/useAuth";
+
 import {
     Container,
     Title,
@@ -19,10 +22,9 @@ import { Header } from "@components/Header";
 import { Button } from "@components/Button";
 import { DietTag } from "@components/DietTag";
 
-import { MealStorageDTO } from "@storage/meals/MealStorageDTO";
-import { getMeal } from "@storage/meals/getMeal";
-import { mealRemoveById } from "@storage/meals/mealRemoveById";
-import { removeEmptyDates } from "@storage/dates/removeEmptyDate";
+import { MealDTO } from "../../dtos/MealDTO";
+import { getMeal, mealRemoveById } from "@storage/storageMeal";
+import { removeEmptyDatesFB } from "@storage/storageDate";
 
 type RouteParams = {
     id: string;
@@ -30,7 +32,9 @@ type RouteParams = {
 
 export function Meal() {
 
-    const [meal, setMeal] = useState<MealStorageDTO>();
+    const { user } = useAuth();
+
+    const [meal, setMeal] = useState<MealDTO>();
 
     const navigation = useNavigation();
     const { params } = useRoute();
@@ -55,12 +59,13 @@ export function Meal() {
     }
 
     async function fetchMeal() {
-        setMeal(await getMeal(id));
+        setMeal(await getMeal(id, user.email));
     }
 
     async function mealRemove() {
-        await mealRemoveById(id);
-        await removeEmptyDates(meal!.date);
+        // await mealRemoveById(id);
+        await mealRemoveById(id, user.email);
+        await removeEmptyDatesFB(meal!.date, user.email);
 
         handleGoBack();
     }

@@ -1,27 +1,25 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Container, Header, Title, Content, Form, Box, Label, BackButton } from "./styles";
 import { Feather } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+
+import { useAuth } from "../../hooks/useAuth";
 
 import { Button } from "@components/Button";
 import { DietButton } from "@components/DietButton";
 import { Input } from "@components/Input";
 
-import { MealStorageDTO } from "@storage/meals/MealStorageDTO";
-import { mealCreate } from "@storage/meals/mealCreate";
-import { dateCreate } from "@storage/dates/dateCreate";
-import { getMeal } from "@storage/meals/getMeal";
-// import { mealUpdate } from "@storage/meals/mealUpdate";
-
-type RouteParams = {
-    id?: string;
-}
+import { MealDTO } from "../../dtos/MealDTO";
+import { mealCreateFB } from "@storage/storageMeal";
+import { createDateFB } from "@storage/storageDate";
+import { Keyboard, TouchableWithoutFeedback } from "react-native";
 
 export function Register() {
 
+    const { user } = useAuth();
     const navigation = useNavigation();
 
-    const [meal, setMeal] = useState<MealStorageDTO>({} as MealStorageDTO);
+    const [meal, setMeal] = useState<MealDTO>({} as MealDTO);
 
     function handleGoBack() {
         navigation.navigate('home');
@@ -30,8 +28,9 @@ export function Register() {
     async function handleSubmit() {
 
         try {
-            await mealCreate(meal);
-            await dateCreate(meal.date);
+
+            await createDateFB(meal.date, user.email);
+            await mealCreateFB(meal, user.email);
 
             navigation.navigate("feedback", { isGoodFeedback: meal.isDiet });
 
@@ -41,87 +40,61 @@ export function Register() {
     }
 
     function handleSelectDietButton() {
-        setMeal({...meal, isDiet: !meal.isDiet});
+        setMeal({ ...meal, isDiet: !meal.isDiet });
     }
 
     return (
-        <Container>
-            <Header>
-                <BackButton onPress={handleGoBack}>
-                    <Feather name='arrow-left' size={24} color='#333638' />
-                </BackButton>
-                <Title>Nova refeição</Title>
-            </Header>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <Container>
+                <Header>
+                    <BackButton onPress={handleGoBack}>
+                        <Feather name='arrow-left' size={24} color='#333638' />
+                    </BackButton>
+                    <Title>Nova refeição</Title>
+                </Header>
 
-            <Content>
-                <Form>
-                    <Input
-                        label='Nome'
-                        value={meal.title}
-                        onChangeText={(text) => setMeal({ ...meal, title: text })}
-                    />
-                    <Input
-                        label='Descrição'
-                        inputHeight={120}
-                        value={meal.description}
-                        multiline
-                        onChangeText={(text) => setMeal({ ...meal, description: text })}
-                    />
-                    <Box>
+                <Content>
+                    <Form>
                         <Input
-                            label='Data'
-                            value={meal.date}
-                            onChangeText={(text) => setMeal({ ...meal, date: text })}
+                            label='Nome'
+                            value={meal.title}
+                            onChangeText={(text) => setMeal({ ...meal, title: text })}
                         />
                         <Input
-                            label='Hora'
-                            value={meal.time}
-                            onChangeText={(text) => setMeal({ ...meal, time: text })}
+                            label='Descrição'
+                            inputHeight={120}
+                            value={meal.description}
+                            multiline
+                            onChangeText={(text) => setMeal({ ...meal, description: text })}
                         />
-                    </Box>
+                        <Box>
+                            <Input
+                                label='Data'
+                                value={meal.date}
+                                onChangeText={(text) => setMeal({ ...meal, date: text })}
+                            />
+                            <Input
+                                label='Hora'
+                                value={meal.time}
+                                onChangeText={(text) => setMeal({ ...meal, time: text })}
+                            />
+                        </Box>
 
-                    <Label>Está dentro da dieta?</Label>
+                        <Label>Está dentro da dieta?</Label>
 
-                    <Box>
-                        <DietButton isSelected={meal.isDiet} title="Sim" onPress={handleSelectDietButton} />
-                        <DietButton type="SECONDARY" isSelected={!meal.isDiet} title="Não" onPress={handleSelectDietButton} />
-                    </Box>
-                </Form>
+                        <Box>
+                            <DietButton isSelected={meal.isDiet} title="Sim" onPress={handleSelectDietButton} />
+                            <DietButton type="SECONDARY" isSelected={!meal.isDiet} title="Não" onPress={handleSelectDietButton} />
+                        </Box>
+                    </Form>
 
-                <Button
-                    title='Cadastrar refeição'
-                    icon={false}
-                    onPress={handleSubmit}
-                />
-            </Content>
-        </Container>
+                    <Button
+                        title='Cadastrar refeição'
+                        icon={false}
+                        onPress={handleSubmit}
+                    />
+                </Content>
+            </Container>
+        </TouchableWithoutFeedback>
     );
 }
-
-// <Input
-//                         label='Nome'
-//                         value={title}
-//                         // onChangeText={setTitle}
-//                         onChangeText={(text) => setMeal({ ...meal, title: text })}
-//                     />
-//                     <Input
-//                         label='Descrição' inputHeight={120}
-//                         value={description}
-//                         multiline
-//                         // onChangeText={setDescription}
-//                         onChangeText={(text) => setMeal({ ...meal, description: text })}
-//                     />
-//                     <Box>
-//                         <Input
-//                             label='Data'
-//                             value={date}
-//                             // onChangeText={setDate}
-//                             onChangeText={(text) => setMeal({ ...meal, date: text })}
-//                         />
-//                         <Input
-//                             label='Hora'
-//                             value={time}
-//                             // onChangeText={setTime}
-//                             onChangeText={(text) => setMeal({ ...meal, time: text })}
-//                         />
-//                     </Box>
